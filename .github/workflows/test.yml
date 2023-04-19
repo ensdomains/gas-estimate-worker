@@ -19,3 +19,5 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+        env: 
+          TENDERLY_ACCESS_KEY: ${{ secrets.TENDERLY_ACCESS_KEY }}
