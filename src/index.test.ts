@@ -94,53 +94,79 @@ describe("Worker", () => {
       }
     `);
   });
-  it("should return 300k gas used when chain is local", async () => {
-    const resp = await worker.fetch("/registration", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        networkId: 1337,
-        label: "test",
-        owner: "0x",
-        resolver: "0x",
-        data: ["0x"],
-        reverseRecord: "0x",
-        ownerControlledFuses: "0",
-      }),
+  describe("local chain", () => {
+    it("should return 270k gas used by default", async () => {
+      const resp = await worker.fetch("/registration", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          networkId: 1337,
+          label: "test",
+          owner: "0x",
+          resolver: "0x",
+          data: ["0x"],
+          reverseRecord: false,
+          ownerControlledFuses: "0",
+        }),
+      });
+      expect(resp.status).toBe(200);
+      const json = await resp.json();
+      expect(json).toMatchInlineSnapshot(`
+        {
+          "gas_used": 270000,
+        }
+      `);
     });
-    expect(resp.status).toBe(200);
-    const json = await resp.json();
-    expect(json).toMatchInlineSnapshot(`
-      {
-        "gas_used": 300000,
-      }
-    `);
-  });
-  it("should return 320k gas used when chain is local and multiple data items", async () => {
-    const resp = await worker.fetch("/registration", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        networkId: 1337,
-        label: "test",
-        owner: "0x",
-        resolver: "0x",
-        data: ["0x", "0x"],
-        reverseRecord: "0x",
-        ownerControlledFuses: "0",
-      }),
+    it("should return +50k gas when multiple data items", async () => {
+      const resp = await worker.fetch("/registration", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          networkId: 1337,
+          label: "test",
+          owner: "0x",
+          resolver: "0x",
+          data: ["0x", "0x"],
+          reverseRecord: false,
+          ownerControlledFuses: "0",
+        }),
+      });
+      expect(resp.status).toBe(200);
+      const json = await resp.json();
+      expect(json).toMatchInlineSnapshot(`
+        {
+          "gas_used": 320000,
+        }
+      `);
     });
-    expect(resp.status).toBe(200);
-    const json = await resp.json();
-    expect(json).toMatchInlineSnapshot(`
-      {
-        "gas_used": 320000,
-      }
-    `);
+    it("should return +80k gas when reverse record", async () => {
+      const resp = await worker.fetch("/registration", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          networkId: 1337,
+          label: "test",
+          owner: "0x",
+          resolver: "0x",
+          data: ["0x"],
+          reverseRecord: true,
+          ownerControlledFuses: "0",
+        }),
+      });
+      expect(resp.status).toBe(200);
+      const json = await resp.json();
+      expect(json).toMatchInlineSnapshot(`
+        {
+          "gas_used": 350000,
+        }
+      `);
+    });
   });
   it("should return simulated tx for goerli registration", async () => {
     const resp = await worker.fetch("/registration", {

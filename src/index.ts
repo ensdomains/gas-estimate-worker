@@ -79,13 +79,15 @@ router.post(
     }
 
     if (networkId === 1337) {
+      let gas = 270000;
       if (data.length > 1) {
-        return {
-          gas_used: 320000,
-        };
+        gas += 50000;
+      }
+      if (reverseRecord) {
+        gas += 80000;
       }
       return {
-        gas_used: 300000,
+        gas_used: gas,
       };
     }
 
