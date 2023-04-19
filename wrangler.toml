@@ -1,0 +1,7 @@
+name = "gas-estimate-worker"
+main = "src/index.ts"
+compatibility_date = "2023-04-18"
+
+[vars]
+TENDERLY_USER = 'ens'
+TENDERLY_PROJECT = 'core'
