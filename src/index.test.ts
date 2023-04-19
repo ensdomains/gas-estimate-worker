@@ -105,7 +105,7 @@ describe("Worker", () => {
         label: "test",
         owner: "0x",
         resolver: "0x",
-        data: "0x",
+        data: ["0x"],
         reverseRecord: "0x",
         ownerControlledFuses: "0",
       }),
@@ -115,6 +115,30 @@ describe("Worker", () => {
     expect(json).toMatchInlineSnapshot(`
       {
         "gas_used": 300000,
+      }
+    `);
+  });
+  it("should return 320k gas used when chain is local and multiple data items", async () => {
+    const resp = await worker.fetch("/registration", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        networkId: 1337,
+        label: "test",
+        owner: "0x",
+        resolver: "0x",
+        data: ["0x", "0x"],
+        reverseRecord: "0x",
+        ownerControlledFuses: "0",
+      }),
+    });
+    expect(resp.status).toBe(200);
+    const json = await resp.json();
+    expect(json).toMatchInlineSnapshot(`
+      {
+        "gas_used": 320000,
       }
     `);
   });

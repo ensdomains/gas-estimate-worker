@@ -79,6 +79,11 @@ router.post(
     }
 
     if (networkId === 1337) {
+      if (data.length > 1) {
+        return {
+          gas_used: 320000,
+        };
+      }
       return {
         gas_used: 300000,
       };
