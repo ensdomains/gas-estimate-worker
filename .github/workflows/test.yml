@@ -1,0 +1,21 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7.8.0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
