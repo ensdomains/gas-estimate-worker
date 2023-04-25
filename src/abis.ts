@@ -88,3 +88,72 @@ export const rentPriceSnippet = [
     type: "function",
   },
 ] as const;
+
+export const renewSnippet = [
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        internalType: "uint256",
+        name: "duration",
+        type: "uint256",
+      },
+    ],
+    name: "renew",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+] as const;
+
+export const bulkRentPriceSnippet = [
+  {
+    inputs: [
+      {
+        internalType: "string[]",
+        name: "names",
+        type: "string[]",
+      },
+      {
+        internalType: "uint256",
+        name: "duration",
+        type: "uint256",
+      },
+    ],
+    name: "rentPrice",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "total",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
+export const renewAllSnippet = [
+  {
+    inputs: [
+      {
+        internalType: "string[]",
+        name: "names",
+        type: "string[]",
+      },
+      {
+        internalType: "uint256",
+        name: "duration",
+        type: "uint256",
+      },
+    ],
+    name: "renewAll",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+] as const;
