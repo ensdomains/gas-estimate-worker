@@ -13,6 +13,7 @@ describe("Worker", () => {
         TENDERLY_PROJECT: "core",
         TENDERLY_ACCESS_KEY: process.env.VITE_TENDERLY_ACCESS_KEY,
       },
+      local: true,
     });
   });
 
