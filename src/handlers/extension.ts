@@ -42,7 +42,8 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
 
   if (networkId === 1337) {
     return {
-      gas_used: 105000 + (shouldUseBulkRenewal ? 42000 * labels.length : 0),
+      status: true,
+      gasUsed: 105000 + (shouldUseBulkRenewal ? 42000 * labels.length : 0),
     };
   }
 
@@ -54,12 +55,12 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
   const publicClient = makeCustomClient(chain);
 
   let to: string;
-  let input: string;
+  let data: string;
   let value: bigint;
 
   if (shouldUseBulkRenewal) {
     const args = [labels, BigInt(duration)] as const;
-    input = encodeFunctionData({
+    data = encodeFunctionData({
       abi: renewAllSnippet,
       functionName: "renewAll",
       args,
@@ -74,7 +75,7 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
     value = price;
   } else {
     const args = [labels[0], BigInt(duration)] as const;
-    input = encodeFunctionData({
+    data = encodeFunctionData({
       abi: renewSnippet,
       functionName: "renew",
       args,
@@ -89,11 +90,11 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
     value = price.base + price.premium * 2n;
   }
 
-  return fetchTenderlyResponse({
+  return await fetchTenderlyResponse({
     env,
-    networkId,
+    chainName: chain.network,
     from,
-    input,
+    data,
     to,
     value,
   });

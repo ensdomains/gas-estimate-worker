@@ -29,11 +29,13 @@ export const goerli = {
 
 export const supportedNetworks = [mainnet, goerli];
 
+export const checkNetwork = (networkName: string) =>
+  networkName === "homestead" ? "mainnet" : networkName;
+
 export const makeCustomClient = (chain: Chain) =>
   createPublicClient({
     chain,
     transport: http(
-      "https://web3.ens.domains/v1/" +
-        (chain.network === "homestead" ? "mainnet" : chain.network)
+      "https://web3.ens.domains/v1/" + checkNetwork(chain.network)
     ),
   });

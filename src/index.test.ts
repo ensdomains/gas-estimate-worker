@@ -11,7 +11,7 @@ describe("Worker", () => {
       vars: {
         TENDERLY_USER: "ens",
         TENDERLY_PROJECT: "core",
-        TENDERLY_ACCESS_KEY: process.env.TENDERLY_ACCESS_KEY,
+        TENDERLY_ACCESS_KEY: process.env.VITE_TENDERLY_ACCESS_KEY,
       },
     });
   });
@@ -116,7 +116,8 @@ describe("Worker", () => {
         const json = await resp.json();
         expect(json).toMatchInlineSnapshot(`
           {
-            "gas_used": 270000,
+            "gasUsed": 270000,
+            "status": true,
           }
         `);
       });
@@ -140,7 +141,8 @@ describe("Worker", () => {
         const json = await resp.json();
         expect(json).toMatchInlineSnapshot(`
           {
-            "gas_used": 320000,
+            "gasUsed": 320000,
+            "status": true,
           }
         `);
       });
@@ -164,7 +166,8 @@ describe("Worker", () => {
         const json = await resp.json();
         expect(json).toMatchInlineSnapshot(`
           {
-            "gas_used": 350000,
+            "gasUsed": 350000,
+            "status": true,
           }
         `);
       });
@@ -188,13 +191,11 @@ describe("Worker", () => {
       });
       expect(resp.status).toBe(200);
       const json = (await resp.json()) as {
-        gas_used: number;
-        network_id: string;
+        gasUsed: number;
         status: boolean;
       };
       expect(json.status).toBe(true);
-      expect(json.gas_used).toBeGreaterThan(250000);
-      expect(json.network_id).toBe("5");
+      expect(json.gasUsed).toBeGreaterThan(250000);
     });
     it("should return simulated tx for mainnet registration", async () => {
       const resp = await worker.fetch("/registration", {
@@ -215,13 +216,11 @@ describe("Worker", () => {
       });
       expect(resp.status).toBe(200);
       const json = (await resp.json()) as {
-        gas_used: number;
-        network_id: string;
+        gasUsed: number;
         status: boolean;
       };
       expect(json.status).toBe(true);
-      expect(json.gas_used).toBeGreaterThan(250000);
-      expect(json.network_id).toBe("1");
+      expect(json.gasUsed).toBeGreaterThan(250000);
     });
   });
   describe("/extension", () => {
@@ -314,7 +313,8 @@ describe("Worker", () => {
         const json = await resp.json();
         expect(json).toMatchInlineSnapshot(`
           {
-            "gas_used": 105000,
+            "gasUsed": 105000,
+            "status": true,
           }
         `);
       });
@@ -335,7 +335,8 @@ describe("Worker", () => {
         const json = await resp.json();
         expect(json).toMatchInlineSnapshot(`
           {
-            "gas_used": 189000,
+            "gasUsed": 189000,
+            "status": true,
           }
         `);
       });
@@ -356,13 +357,11 @@ describe("Worker", () => {
         });
         expect(resp.status).toBe(200);
         const json = (await resp.json()) as {
-          gas_used: number;
-          network_id: string;
+          gasUsed: number;
           status: boolean;
         };
         expect(json.status).toBe(true);
-        expect(json.gas_used).toBeGreaterThan(70000);
-        expect(json.network_id).toBe("5");
+        expect(json.gasUsed).toBeGreaterThan(70000);
       });
       it("should return simulated tx for bulk", async () => {
         const resp = await worker.fetch("/extension", {
@@ -379,13 +378,11 @@ describe("Worker", () => {
         });
         expect(resp.status).toBe(200);
         const json = (await resp.json()) as {
-          gas_used: number;
-          network_id: string;
+          gasUsed: number;
           status: boolean;
         };
         expect(json.status).toBe(true);
-        expect(json.gas_used).toBeGreaterThan(175000);
-        expect(json.network_id).toBe("5");
+        expect(json.gasUsed).toBeGreaterThan(175000);
       });
     });
     describe("mainnet", () => {
@@ -404,13 +401,11 @@ describe("Worker", () => {
         });
         expect(resp.status).toBe(200);
         const json = (await resp.json()) as {
-          gas_used: number;
-          network_id: string;
+          gasUsed: number;
           status: boolean;
         };
         expect(json.status).toBe(true);
-        expect(json.gas_used).toBeGreaterThan(70000);
-        expect(json.network_id).toBe("1");
+        expect(json.gasUsed).toBeGreaterThan(70000);
       });
       it("should return simulated tx for bulk", async () => {
         const resp = await worker.fetch("/extension", {
@@ -427,13 +422,11 @@ describe("Worker", () => {
         });
         expect(resp.status).toBe(200);
         const json = (await resp.json()) as {
-          gas_used: number;
-          network_id: string;
+          gasUsed: number;
           status: boolean;
         };
         expect(json.status).toBe(true);
-        expect(json.gas_used).toBeGreaterThan(200000);
-        expect(json.network_id).toBe("1");
+        expect(json.gasUsed).toBeGreaterThan(200000);
       });
     });
   });
