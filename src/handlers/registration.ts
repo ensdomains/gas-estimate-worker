@@ -50,7 +50,8 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
       gas += 80000;
     }
     return {
-      gas_used: gas,
+      status: true,
+      gasUsed: gas,
     };
   }
 
@@ -83,19 +84,21 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
     { size: 32, dir: "left" }
   );
 
-  return fetchTenderlyResponse({
+  const response = await fetchTenderlyResponse({
     env,
-    networkId,
+    chainName: chain.network,
     from: owner,
-    input: registrationData,
+    data: registrationData,
     to: chain.contracts.ethRegistrarController.address,
     value,
-    state_objects: {
+    stateDiff: {
       [chain.contracts.ethRegistrarController.address]: {
-        storage: {
+        stateDiff: {
           [slotModifier]: modifierValue,
         },
       },
     },
   });
+
+  return response;
 };

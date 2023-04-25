@@ -1,16 +1,17 @@
 import { parseEther } from "viem";
+import { checkNetwork } from "./networks";
 import { Env } from "./types";
 
 type TenderlyRequest = {
   env: Env;
-  networkId: number;
+  chainName: string;
   from: string;
-  input: string;
+  data: string;
   to: string;
   value: bigint;
-  state_objects?: {
+  stateDiff?: {
     [address: string]: {
-      storage?: {
+      stateDiff?: {
         [slot: string]: string;
       };
       balance?: bigint;
@@ -18,45 +19,74 @@ type TenderlyRequest = {
   };
 };
 
+type TenderlyResponse =
+  | {
+      id: number;
+      jsonrpc: string;
+      result: {
+        blockNumber: string;
+        cumulativeGasUsed: string;
+        gasUsed: string;
+        status: boolean;
+      };
+    }
+  | {
+      error: unknown;
+    };
+
 export const fetchTenderlyResponse = async ({
   env,
-  networkId,
+  chainName,
   from,
-  input,
+  data,
   to,
   value,
-  state_objects = {},
+  stateDiff = {},
 }: TenderlyRequest) => {
   const requiredBalance = value + parseEther("1");
 
   const simulationTx = {
-    save: false,
-    save_if_fails: false,
-    simulation_type: "quick",
-    network_id: `${networkId}`,
-    from,
-    input,
-    to,
-    value: value.toString(),
-    state_objects: {
-      ...state_objects,
-      [from]: {
-        ...(state_objects[from] || {}),
-        balance: requiredBalance.toString(),
+    id: 0,
+    jsonrpc: "2.0",
+    method: "tenderly_simulateTransaction",
+    params: [
+      {
+        from,
+        to,
+        data,
+        value: `0x${value.toString(16)}`,
       },
-    },
+      "latest",
+      {
+        ...stateDiff,
+        [from]: {
+          ...(stateDiff[from] || {}),
+          balance: `0x${requiredBalance.toString(16)}`,
+        },
+      },
+    ],
   };
 
-  const simulation = await fetch(
-    `https://api.tenderly.co/api/v1/account/${env.TENDERLY_USER}/project/${env.TENDERLY_PROJECT}/simulate`,
-    {
-      method: "POST",
-      headers: {
-        "X-Access-Key": env.TENDERLY_ACCESS_KEY,
-      },
-      body: JSON.stringify(simulationTx),
-    }
-  ).then((res) => res.json<{ transaction: { gas_used: number } }>());
+  const url = `https://${checkNetwork(chainName)}.gateway.tenderly.co/${
+    env.TENDERLY_ACCESS_KEY
+  }`;
 
-  return simulation.transaction;
+  const simulation = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(simulationTx),
+  }).then((res) => res.json<TenderlyResponse>());
+
+  if ("error" in simulation) {
+    throw simulation.error;
+  }
+
+  const { result } = simulation;
+
+  return {
+    ...result,
+    gasUsed: parseInt(result.gasUsed, 16),
+  };
 };
