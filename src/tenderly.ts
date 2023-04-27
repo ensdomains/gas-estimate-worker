@@ -43,7 +43,7 @@ export const fetchTenderlyResponse = async ({
   value,
   stateDiff = {},
 }: TenderlyRequest) => {
-  const requiredBalance = value + parseEther("1");
+  const requiredBalance = value + parseEther("10");
 
   const simulationTx = {
     id: 0,
@@ -55,6 +55,7 @@ export const fetchTenderlyResponse = async ({
         to,
         data,
         value: `0x${value.toString(16)}`,
+        gas: "0x4c4b40",
       },
       "latest",
       {
@@ -80,6 +81,7 @@ export const fetchTenderlyResponse = async ({
   }).then((res) => res.json<TenderlyResponse>());
 
   if ("error" in simulation) {
+    console.log(simulation.error);
     throw simulation.error;
   }
 

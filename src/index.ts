@@ -58,5 +58,7 @@ const handleCache = async (
 
 export default {
   fetch: async (request: Request, env: Env, ctx: ExecutionContext) =>
-    handleCache(request, env, ctx).catch(error).then(corsify),
+    handleCache(request, env, ctx)
+      .catch((err) => error(500, err))
+      .then(corsify),
 };
