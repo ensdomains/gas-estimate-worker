@@ -1,3 +1,4 @@
+import type { Abi, ReadContractParameters, ReadContractReturnType } from "viem";
 import {
   Address,
   concatHex,
@@ -8,6 +9,7 @@ import {
   padHex,
 } from "viem";
 import { registerSnippet } from "./abis";
+import { makeCustomClients } from "./networks";
 
 export type CommitmentParams = {
   label: string;
@@ -106,4 +108,27 @@ export const makeEncodedData = ({
     commitment,
     registrationData,
   };
+};
+
+export const tryReadContract = async <
+  TAbi extends Abi | readonly unknown[],
+  TFunctionName extends string
+>(
+  clients: ReturnType<typeof makeCustomClients>,
+  args: ReadContractParameters<TAbi, TFunctionName>
+): Promise<ReadContractReturnType<TAbi, TFunctionName>> => {
+  let data: ReadContractReturnType<TAbi, TFunctionName> | undefined;
+
+  for (let i = 0; i < clients.length; i++) {
+    const client = clients[i];
+    try {
+      data = await client.readContract(args);
+      break;
+    } catch (e) {
+      if (i === clients.length - 1) throw e;
+      else continue;
+    }
+  }
+
+  return data as ReadContractReturnType<TAbi, TFunctionName>;
 };

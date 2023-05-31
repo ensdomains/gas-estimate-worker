@@ -2,8 +2,8 @@ import { error, IRequest } from "itty-router";
 
 import { padHex } from "viem";
 import { rentPriceSnippet } from "../abis";
-import { CommitmentParams, makeEncodedData } from "../helpers";
-import { makeCustomClient, supportedNetworks } from "../networks";
+import { CommitmentParams, makeEncodedData, tryReadContract } from "../helpers";
+import { makeCustomClients, supportedNetworks } from "../networks";
 import { fetchTenderlyResponse } from "../tenderly";
 import { Env } from "../types";
 import { keysValidator } from "../validators";
@@ -69,14 +69,15 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
     ownerControlledFuses,
   });
 
-  const publicClient = makeCustomClient(chain);
+  const publicClients = makeCustomClients(env, chain);
 
-  const price = await publicClient.readContract({
+  const price = await tryReadContract(publicClients, {
     address: chain.contracts.ethRegistrarController.address,
     abi: rentPriceSnippet,
     functionName: "rentPrice",
     args: [label, 31557600n],
   });
+
   const value = price.base + price.premium * 2n;
 
   const modifierValue = padHex(

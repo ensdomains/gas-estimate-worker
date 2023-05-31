@@ -12,6 +12,7 @@ describe("Worker", () => {
         TENDERLY_USER: "ens",
         TENDERLY_PROJECT: "core",
         TENDERLY_ACCESS_KEY: process.env.VITE_TENDERLY_ACCESS_KEY,
+        INFURA_API_KEY: process.env.VITE_INFURA_API_KEY,
       },
       local: true,
     });

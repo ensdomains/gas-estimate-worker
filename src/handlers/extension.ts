@@ -7,7 +7,8 @@ import {
   renewSnippet,
   rentPriceSnippet,
 } from "../abis";
-import { makeCustomClient, supportedNetworks } from "../networks";
+import { tryReadContract } from "../helpers";
+import { makeCustomClients, supportedNetworks } from "../networks";
 import { fetchTenderlyResponse } from "../tenderly";
 import { Env } from "../types";
 import { keysValidator } from "../validators";
@@ -52,7 +53,7 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
     return error(400, "Unsupported network");
   }
 
-  const publicClient = makeCustomClient(chain);
+  const publicClients = makeCustomClients(env, chain);
 
   let to: string;
   let data: string;
@@ -66,7 +67,7 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
       args,
     });
     to = chain.contracts.bulkRenewal.address;
-    const price = await publicClient.readContract({
+    const price = await tryReadContract(publicClients, {
       address: chain.contracts.bulkRenewal.address,
       abi: bulkRentPriceSnippet,
       functionName: "rentPrice",
@@ -81,7 +82,7 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
       args,
     });
     to = chain.contracts.ethRegistrarController.address;
-    const price = await publicClient.readContract({
+    const price = await tryReadContract(publicClients, {
       address: chain.contracts.ethRegistrarController.address,
       abi: rentPriceSnippet,
       functionName: "rentPrice",

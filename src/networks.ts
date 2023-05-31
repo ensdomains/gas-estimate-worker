@@ -1,5 +1,6 @@
 import { createPublicClient, http } from "viem";
 import { Chain, goerli as _goerli, mainnet as _mainnet } from "viem/chains";
+import { Env } from "./types";
 
 export const mainnet = {
   ..._mainnet,
@@ -32,10 +33,19 @@ export const supportedNetworks = [mainnet, goerli];
 export const checkNetwork = (networkName: string) =>
   networkName === "homestead" ? "mainnet" : networkName;
 
-export const makeCustomClient = (chain: Chain) =>
+export const makeCustomClients = (env: Env, chain: Chain) => [
   createPublicClient({
     chain,
     transport: http(
       "https://web3.ens.domains/v1/" + checkNetwork(chain.network)
     ),
-  });
+  }),
+  createPublicClient({
+    chain,
+    transport: http(
+      `https://${checkNetwork(chain.network)}.infura.io/v3/${
+        env.INFURA_API_KEY
+      }`
+    ),
+  }),
+];
