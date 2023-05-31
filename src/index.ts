@@ -71,7 +71,7 @@ export default {
     handleCache(request, env, ctx)
       .catch((err) => {
         console.error(err);
-        return error(500, err);
+        return error(500);
       })
       .then(corsify),
 };
