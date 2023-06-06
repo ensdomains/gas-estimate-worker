@@ -2,6 +2,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { UnstableDevWorker } from "wrangler";
 import { unstable_dev } from "wrangler";
 
+type GasResponse = {
+  gasUsed: number;
+  status: boolean;
+};
+
 describe("Worker", () => {
   let worker: UnstableDevWorker;
 
@@ -9,9 +14,6 @@ describe("Worker", () => {
     worker = await unstable_dev("src/index.ts", {
       experimental: { disableExperimentalWarning: true },
       vars: {
-        TENDERLY_USER: "ens",
-        TENDERLY_PROJECT: "core",
-        TENDERLY_ACCESS_KEY: process.env.VITE_TENDERLY_ACCESS_KEY,
         INFURA_API_KEY: process.env.VITE_INFURA_API_KEY,
       },
       local: true,
@@ -192,14 +194,13 @@ describe("Worker", () => {
         }),
       });
       expect(resp.status).toBe(200);
-      const json = (await resp.json()) as {
-        gasUsed: number;
-        status: boolean;
-      };
+      const json = (await resp.json()) as GasResponse;
       expect(json.status).toBe(true);
       expect(json.gasUsed).toBeGreaterThan(250000);
     });
     it("should return simulated tx for mainnet registration", async () => {
+      const label =
+        "random-name-dsfjksjkdf-" + Math.random().toString(36).substring(7);
       const resp = await worker.fetch("/registration", {
         method: "POST",
         headers: {
@@ -207,8 +208,7 @@ describe("Worker", () => {
         },
         body: JSON.stringify({
           networkId: 1,
-          label:
-            "random-name-dsfjksjkdf-" + Math.random().toString(36).substring(7),
+          label,
           owner: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
           resolver: "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63",
           data: [],
@@ -217,10 +217,7 @@ describe("Worker", () => {
         }),
       });
       expect(resp.status).toBe(200);
-      const json = (await resp.json()) as {
-        gasUsed: number;
-        status: boolean;
-      };
+      const json = (await resp.json()) as GasResponse;
       expect(json.status).toBe(true);
       expect(json.gasUsed).toBeGreaterThan(250000);
     });
@@ -358,10 +355,7 @@ describe("Worker", () => {
           }),
         });
         expect(resp.status).toBe(200);
-        const json = (await resp.json()) as {
-          gasUsed: number;
-          status: boolean;
-        };
+        const json = (await resp.json()) as GasResponse;
         expect(json.status).toBe(true);
         expect(json.gasUsed).toBeGreaterThan(70000);
       });
@@ -379,10 +373,7 @@ describe("Worker", () => {
           }),
         });
         expect(resp.status).toBe(200);
-        const json = (await resp.json()) as {
-          gasUsed: number;
-          status: boolean;
-        };
+        const json = (await resp.json()) as GasResponse;
         expect(json.status).toBe(true);
         expect(json.gasUsed).toBeGreaterThan(175000);
       });
@@ -402,10 +393,7 @@ describe("Worker", () => {
           }),
         });
         expect(resp.status).toBe(200);
-        const json = (await resp.json()) as {
-          gasUsed: number;
-          status: boolean;
-        };
+        const json = (await resp.json()) as GasResponse;
         expect(json.status).toBe(true);
         expect(json.gasUsed).toBeGreaterThan(70000);
       });
@@ -423,10 +411,7 @@ describe("Worker", () => {
           }),
         });
         expect(resp.status).toBe(200);
-        const json = (await resp.json()) as {
-          gasUsed: number;
-          status: boolean;
-        };
+        const json = (await resp.json()) as GasResponse;
         expect(json.status).toBe(true);
         expect(json.gasUsed).toBeGreaterThan(200000);
       });

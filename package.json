@@ -11,7 +11,7 @@
   "scripts": {
     "start": "wrangler dev",
     "deploy": "wrangler publish",
-    "test": "vitest"
+    "test": "vitest --testTimeout 10000"
   },
   "dependencies": {
     "itty-router": "4.0.0-next.46",
