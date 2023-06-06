@@ -15,13 +15,19 @@ import {
   callWithGasUsedSnippet,
   rentPriceSnippet,
 } from "../abis";
-import { CommitmentParams, leftPadBytes32, makeEncodedData } from "../helpers";
+import { CommitmentParams, makeEncodedData } from "../helpers";
 import {
   CustomClient,
   runFromClientArray,
   supportedNetworks,
 } from "../networks";
 import { Env } from "../types";
+import {
+  fakeContractReference,
+  leftPadBytes32,
+  makeBytesUtils,
+  nameWrapperControllerStorageReference,
+} from "../utils";
 import { keysValidator } from "../validators";
 
 type RegistrationRequest = {
@@ -90,12 +96,9 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
   });
 
   const run = async (publicClient: CustomClient) => {
-    const trueBytes32 = publicClient.leadingZeros
-      ? leftPadBytes32("0x01")
-      : "0x1";
-    const optionalLeftPadBytes32 = publicClient.leadingZeros
-      ? leftPadBytes32
-      : (x: string) => x;
+    const { trueAsBytes32, optionalLeftPadBytes32 } = makeBytesUtils(
+      publicClient.leadingZeros
+    );
 
     const price = await publicClient.readContract({
       address: chain.contracts.ethRegistrarController.address,
@@ -124,33 +127,41 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
       secondsVal = Number(block.timestamp) - 1000;
     }
 
-    const modifierValue = optionalLeftPadBytes32(toHex(secondsVal));
-
-    const slotModifier = keccak256(
+    /**
+     * Storage reference for the commitments mapping on the ETHRegistrarController contract
+     * @dev Equivalent to `commitments[commitment]` in solidity
+     * @reference ETHRegistrarController - storage slot 1
+     */
+    const commitmentStorageReference = keccak256(
       concatHex([commitment, leftPadBytes32("0x01")])
     );
 
-    const controllerSlot = keccak256(
-      concatHex([
-        leftPadBytes32(chain.contracts.multicall3.address),
-        leftPadBytes32("0x04"),
-      ])
-    );
+    /**
+     * @dev Bytes32 padded value of the commitment time
+     */
+    const commitmentValue = optionalLeftPadBytes32(toHex(secondsVal));
 
-    const operatorApprovedSlot = keccak256(
+    /**
+     * Storage reference for the operator approvals mapping on the PublicResolver contract
+     * @dev Equivalent to `_operatorApprovals[owner][fakeContractReference]` in solidity
+     * @reference PublicResolver - storage slot 11
+     */
+    const operatorApprovedStorageReference = keccak256(
       concatHex([
-        leftPadBytes32(chain.contracts.multicall3.address),
+        leftPadBytes32(fakeContractReference),
         keccak256(
           concatHex([leftPadBytes32(owner as Hex), leftPadBytes32(toHex(11))])
         ),
       ])
     );
 
-    const reverseRegistrarSlot = keccak256(
-      concatHex([
-        leftPadBytes32(chain.contracts.multicall3.address),
-        leftPadBytes32("0x01"),
-      ])
+    /**
+     * Storage reference for the controllers mapping on the ReverseRegistrar contract
+     * @dev Equivalent to `controllers[fakeContractReference]` in solidity
+     * @reference ReverseRegistrar - storage slot 1
+     */
+    const reverseRegistrarControllerStorageReference = keccak256(
+      concatHex([leftPadBytes32(fakeContractReference), leftPadBytes32("0x01")])
     );
 
     const thing = await publicClient.request({
@@ -158,26 +169,29 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
       params: [
         {
           from: owner,
-          to: chain.contracts.multicall3.address,
+          to: fakeContractReference,
           data: callWithGasUsedData,
           value: toHex(value),
         },
         blockNumber ? toHex(blockNumber) : "latest",
         {
-          [chain.contracts.multicall3.address]: {
+          [fakeContractReference]: {
             code: callWithGasUsedBytecode,
             stateDiff: {
-              [slotModifier]: modifierValue,
+              // set commitment to valid value
+              [commitmentStorageReference]: commitmentValue,
             },
           },
           [chain.contracts.ensNameWrapper.address]: {
             stateDiff: {
-              [controllerSlot]: trueBytes32,
+              // set fakeContractReference as controller on namewrapper
+              [nameWrapperControllerStorageReference]: trueAsBytes32,
             },
           },
           [resolver]: {
             stateDiff: {
-              [operatorApprovedSlot]: trueBytes32,
+              // set fakeContractReference as operator for owner on resolver
+              [operatorApprovedStorageReference]: trueAsBytes32,
             },
           },
           [owner]: {
@@ -187,7 +201,8 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
             ? {
                 [chain.contracts.ensReverseRegistrar.address]: {
                   stateDiff: {
-                    [reverseRegistrarSlot]: trueBytes32,
+                    // set fakeContractReference as controller on reverse registrar
+                    [reverseRegistrarControllerStorageReference]: trueAsBytes32,
                   },
                 },
               }
@@ -207,6 +222,7 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
       0n
     );
 
+    // idk why 3750 works but it does (from backtesting)
     const totalGasCalc = gasUsed + 21000n - callDataGas - 3750n;
 
     return {

@@ -1,11 +1,9 @@
-import type { Hex } from "viem";
 import {
   Address,
   encodeAbiParameters,
   encodeFunctionData,
   keccak256,
   labelhash,
-  padHex,
 } from "viem";
 import { registerSnippet } from "./abis";
 
@@ -106,6 +104,3 @@ export const makeEncodedData = ({
     registrationData,
   };
 };
-
-export const leftPadBytes32 = (hex: Hex) =>
-  padHex(hex, { dir: "left", size: 32 });

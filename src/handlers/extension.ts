@@ -1,11 +1,9 @@
 import { error, IRequest } from "itty-router";
 
 import {
-  concatHex,
   decodeFunctionResult,
   encodeFunctionData,
   Hex,
-  keccak256,
   parseEther,
   toHex,
 } from "viem";
@@ -18,13 +16,18 @@ import {
   renewSnippet,
   rentPriceSnippet,
 } from "../abis";
-import { leftPadBytes32 } from "../helpers";
 import {
   CustomClient,
   runFromClientArray,
   supportedNetworks,
 } from "../networks";
 import { Env } from "../types";
+import {
+  fakeContractReference,
+  leftPadBytes32,
+  makeBytesUtils,
+  nameWrapperControllerStorageReference,
+} from "../utils";
 import { keysValidator } from "../validators";
 
 type ExtensionRequest = {
@@ -72,12 +75,10 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
   }
 
   const run = async (publicClient: CustomClient) => {
-    const trueBytes32 = publicClient.leadingZeros
-      ? leftPadBytes32("0x01")
-      : "0x1";
-    const optionalLeftPadBytes32 = publicClient.leadingZeros
-      ? leftPadBytes32
-      : (x: string) => x;
+    const { trueAsBytes32, optionalLeftPadBytes32 } = makeBytesUtils(
+      publicClient.leadingZeros
+    );
+
     if (shouldUseBulkRenewal) {
       const args = [labels, BigInt(duration)] as const;
       const data = encodeFunctionData({
@@ -107,15 +108,16 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
         params: [
           {
             from,
-            to: chain.contracts.multicall3.address,
+            to: fakeContractReference,
             data: callWithGasUsedData,
             value: toHex(value),
           },
           blockNumber ? toHex(blockNumber) : "latest",
           {
-            [chain.contracts.multicall3.address]: {
+            [fakeContractReference]: {
               code: bulkRenewalCallBytecode,
               stateDiff: {
+                // storage slot 0: controller address on BulkRenewal
                 [leftPadBytes32("0x00")]: optionalLeftPadBytes32(
                   chain.contracts.ethRegistrarController.address
                 ),
@@ -162,30 +164,24 @@ export default async (request: IRequest, env: Env, ctx: ExecutionContext) => {
         args: [chain.contracts.ethRegistrarController.address, data as Hex],
       });
 
-      const controllerSlot = keccak256(
-        concatHex([
-          leftPadBytes32(chain.contracts.multicall3.address),
-          leftPadBytes32("0x04"),
-        ])
-      );
-
       const returnedValue = await publicClient.request({
         method: "eth_call",
         params: [
           {
             from,
-            to: chain.contracts.multicall3.address,
+            to: fakeContractReference,
             data: callWithGasUsedData,
             value: toHex(value),
           },
           blockNumber ? toHex(blockNumber) : "latest",
           {
-            [chain.contracts.multicall3.address]: {
+            [fakeContractReference]: {
               code: callWithGasUsedBytecode,
             },
             [chain.contracts.ensNameWrapper.address]: {
               stateDiff: {
-                [controllerSlot]: trueBytes32,
+                // set fakeContractReference as controller
+                [nameWrapperControllerStorageReference]: trueAsBytes32,
               },
             },
             [from]: {
