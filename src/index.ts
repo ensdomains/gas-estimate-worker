@@ -4,6 +4,16 @@ import extensionHandler from "./handlers/extension";
 import registrationHandler from "./handlers/registration";
 import { Env } from "./types";
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+interface BigInt {
+  /** Convert to BigInt to string form in JSON.stringify */
+  toJSON: () => string;
+}
+// @ts-ignore
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
+
 const { preflight, corsify } = createCors({
   origins: ["*"],
   methods: ["POST"],
@@ -59,6 +69,9 @@ const handleCache = async (
 export default {
   fetch: async (request: Request, env: Env, ctx: ExecutionContext) =>
     handleCache(request, env, ctx)
-      .catch((err) => error(500, err))
+      .catch((err) => {
+        console.error(err);
+        return error(500);
+      })
       .then(corsify),
 };

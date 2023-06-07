@@ -1,11 +1,9 @@
 import {
   Address,
-  concatHex,
   encodeAbiParameters,
   encodeFunctionData,
   keccak256,
   labelhash,
-  padHex,
 } from "viem";
 import { registerSnippet } from "./abis";
 
@@ -16,6 +14,7 @@ export type CommitmentParams = {
   data: string[];
   reverseRecord: boolean;
   ownerControlledFuses: number;
+  duration: number;
 };
 
 type BytesString = `0x${string}`;
@@ -77,11 +76,12 @@ export const makeEncodedData = ({
   data,
   reverseRecord,
   ownerControlledFuses,
+  duration,
 }: CommitmentParams) => {
   const commitmentTuple: CommitmentTuple = [
     labelhash(label),
     owner as Address,
-    31557600n,
+    BigInt(duration),
     "0xa3f29d8e0b1743c6a9b6c213f12d8e6b932b6a7fcb8d0e042c57d1e1ba89f2a8",
     resolver as Address,
     data as BytesString[],
@@ -100,9 +100,6 @@ export const makeEncodedData = ({
   });
 
   return {
-    slotModifier: keccak256(
-      concatHex([commitment, padHex(`0x01`, { size: 32, dir: "left" })])
-    ),
     commitment,
     registrationData,
   };
