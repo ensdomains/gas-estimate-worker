@@ -1,5 +1,10 @@
 import { createPublicClient, http } from "viem";
-import { Chain, goerli as _goerli, mainnet as _mainnet } from "viem/chains";
+import {
+  Chain,
+  goerli as _goerli,
+  mainnet as _mainnet,
+  sepolia as _sepolia,
+} from "viem/chains";
 import { Env } from "./types";
 
 export const mainnet = {
@@ -52,7 +57,32 @@ export const goerli = {
   },
 } as const;
 
-export const supportedNetworks = [mainnet, goerli];
+export const sepolia = {
+  ..._sepolia,
+  contracts: {
+    ..._sepolia.contracts,
+    ensBaseRegistrarImplementation: {
+      address: "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85",
+    },
+    ethRegistrarController: {
+      address: "0xFED6a969AaA60E4961FCD3EBF1A2e8913ac65B72",
+    },
+    bulkRenewal: {
+      address: "0x4EF77b90762Eddb33C8Eba5B5a19558DaE53D7a1",
+    },
+    ensReverseRegistrar: {
+      address: "0xA0a1AbcDAe1a2a4A2EF8e9113Ff0e02DD81DC0C6",
+    },
+    ensNameWrapper: {
+      address: "0x0635513f179D50A207757E05759CbD106d7dFcE8",
+    },
+    ensPriceOracle: {
+      address: "0x6810dbce73c67506f785a225f818b30d8f209aab",
+    },
+  },
+} as const;
+
+export const supportedNetworks = [mainnet, goerli, sepolia];
 
 export const checkNetwork = (networkName: string) =>
   networkName === "homestead" ? "mainnet" : networkName;

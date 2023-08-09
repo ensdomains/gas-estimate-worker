@@ -198,6 +198,28 @@ describe("Worker", () => {
       expect(json.status).toBe(true);
       expect(json.gasUsed).toBeGreaterThan(250000);
     });
+    it("should return simulated tx for sepolia registration", async () => {
+      const resp = await worker.fetch("/registration", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          networkId: 11155111,
+          label:
+            "random-name-dsfjksjkdf-" + Math.random().toString(36).substring(7),
+          owner: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          resolver: "0x8FADE66B79cC9f707aB26799354482EB93a5B7dD",
+          data: [],
+          reverseRecord: true,
+          ownerControlledFuses: "0",
+        }),
+      });
+      expect(resp.status).toBe(200);
+      const json = (await resp.json()) as GasResponse;
+      expect(json.status).toBe(true);
+      expect(json.gasUsed).toBeGreaterThan(250000);
+    });
     it("should return simulated tx for mainnet registration", async () => {
       const label =
         "random-name-dsfjksjkdf-" + Math.random().toString(36).substring(7);
@@ -368,6 +390,44 @@ describe("Worker", () => {
           body: JSON.stringify({
             networkId: 5,
             labels: ["taytems", "nick", "jefflau"],
+            from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            duration: 86400,
+          }),
+        });
+        expect(resp.status).toBe(200);
+        const json = (await resp.json()) as GasResponse;
+        expect(json.status).toBe(true);
+        expect(json.gasUsed).toBeGreaterThan(175000);
+      });
+    });
+    describe("sepolia", () => {
+      it("should return simulated tx for single name", async () => {
+        const resp = await worker.fetch("/extension", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            networkId: 11155111,
+            labels: ["taytems"],
+            from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            duration: 86400,
+          }),
+        });
+        expect(resp.status).toBe(200);
+        const json = (await resp.json()) as GasResponse;
+        expect(json.status).toBe(true);
+        expect(json.gasUsed).toBeGreaterThan(70000);
+      });
+      it("should return simulated tx for bulk", async () => {
+        const resp = await worker.fetch("/extension", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            networkId: 11155111,
+            labels: ["swagalicious", "data", "taytems"],
             from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
             duration: 86400,
           }),
