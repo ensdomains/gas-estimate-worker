@@ -105,7 +105,7 @@ export const makeClientArray = (env: Env, chain: Chain) => [
     createPublicClient({
       chain,
       transport: http(
-        `https://web3.ens.domains/v1/${checkNetwork(chain.network)}`
+        `https://web3.euc.li/v1/${checkNetwork(chain.network)}`
       ),
     }),
     {
